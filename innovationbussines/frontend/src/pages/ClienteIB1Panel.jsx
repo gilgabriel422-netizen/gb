@@ -1,17 +1,138 @@
 import React from 'react'
-import { FileText, Gift, HelpCircle, Menu, X, LogOut, BookOpen } from 'lucide-react'
+import { FileText, Gift, HelpCircle, Menu, X, LogOut, BookOpen, Award, Inbox, MessageCircle } from 'lucide-react'
 import WhatsAppFloat from '../components/WhatsAppFloat'
 import { useAuth } from '../contexts/AuthContext'
+import NotificationBell from '../components/NotificationBell'
 
 const ClienteIB1Panel = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
   const [activeSection, setActiveSection] = React.useState('contrato')
-  const { logout } = useAuth()
+  const [asunto, setAsunto] = React.useState('')
+  const [nuevoMensaje, setNuevoMensaje] = React.useState('')
+  const [enviando, setEnviando] = React.useState(false)
+  const [successMessage, setSuccessMessage] = React.useState('')
+  const [respuestas, setRespuestas] = React.useState([])
+  const [loadingRespuestas, setLoadingRespuestas] = React.useState(true)
+  const [contratos, setContratos] = React.useState([])
+  const [loadingContratos, setLoadingContratos] = React.useState(true)
+  const [contratosError, setContratosError] = React.useState('')
+  const { logout, user } = useAuth()
+
+  const formatDate = (value) => {
+    if (!value) return '—'
+    return new Date(value).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  React.useEffect(() => {
+    if (!user) return
+    const loadContratos = async () => {
+      setLoadingContratos(true)
+      setContratosError('')
+      try {
+        const api = await import('../services/api')
+        const usuario_id = user?.usuario_id || user?.id || user?.userId
+        if (!usuario_id) {
+          setLoadingContratos(false)
+          return
+        }
+        let response
+        try {
+          response = await api.default.get(`/contratos-fisicos/cliente/${usuario_id}`)
+        } catch (error) {
+          response = await api.default.get('/contratos-fisicos')
+        }
+        const data = Array.isArray(response.data) ? response.data : []
+        const filtrados = data.filter(c => Number(c.cliente_id) === Number(usuario_id))
+        setContratos(filtrados)
+      } catch (error) {
+        console.error('Error cargando contratos:', error)
+        setContratosError('No se pudieron cargar los contratos.')
+      } finally {
+        setLoadingContratos(false)
+      }
+    }
+    loadContratos()
+  }, [user])
+
+  const handleEnviarMensaje = async (e) => {
+    e.preventDefault()
+
+    if (!asunto.trim() || !nuevoMensaje.trim()) {
+      alert('Por favor completa el asunto y el mensaje')
+      return
+    }
+
+    setEnviando(true)
+    try {
+      const api = await import('../services/api')
+      const usuario_id = user?.usuario_id || user?.id || user?.userId
+
+      if (!usuario_id) {
+        alert('Error: No se pudo obtener tu ID de usuario. Por favor recarga la página.')
+        setEnviando(false)
+        return
+      }
+
+      const data = {
+        asunto,
+        contenido: nuevoMensaje,
+        usuario_id: parseInt(usuario_id, 10),
+        tipo_remitente: 'cliente',
+        estado: 'pendiente'
+      }
+
+      const response = await api.default.post('/mensajes', data)
+      if (response.data) {
+        setAsunto('')
+        setNuevoMensaje('')
+        setSuccessMessage('¡Mensaje enviado exitosamente!')
+        setTimeout(() => setSuccessMessage(''), 3000)
+      }
+    } catch (error) {
+      console.error('Error enviando mensaje:', error)
+      alert('Error al enviar el mensaje: ' + (error.response?.data?.error || error.message))
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  React.useEffect(() => {
+    if (!user) return
+    const loadRespuestas = async () => {
+      try {
+        const api = await import('../services/api')
+        const usuario_id = user?.usuario_id || user?.id || user?.userId
+        if (!usuario_id) {
+          setLoadingRespuestas(false)
+          return
+        }
+        const response = await api.default.get('/mensajes')
+        const data = response.data || []
+        const usuarioId = Number(usuario_id)
+        const filtradas = data
+          .filter(m => Number(m.usuario_id) === usuarioId && m.respuesta)
+          .sort((a, b) => new Date(b.fecha_respuesta || b.fecha_creacion) - new Date(a.fecha_respuesta || a.fecha_creacion))
+        setRespuestas(filtradas)
+      } catch (error) {
+        console.error('Error cargando respuestas:', error)
+      } finally {
+        setLoadingRespuestas(false)
+      }
+    }
+    loadRespuestas()
+  }, [user])
 
   const sections = [
     { id: 'contrato', name: 'Contrato', icon: FileText },
     { id: 'beneficios', name: 'Beneficios', icon: Gift },
+    { id: 'puntos-compensacion', name: 'Puntos / Compensación', icon: Award },
     { id: 'solicitar-reserva', name: 'Solicitar Reserva', icon: BookOpen },
+    { id: 'enviar-atencion', name: 'Enviar a Atención', icon: MessageCircle },
+    { id: 'bandeja-respuestas', name: 'Bandeja de Respuestas', icon: Inbox },
     { id: 'ayuda', name: 'Ayuda', icon: HelpCircle }
   ]
 
@@ -22,9 +143,37 @@ const ClienteIB1Panel = () => {
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Contrato</h2>
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <p className="text-sm text-gray-600">
-                Aquí podrás ver el estado y detalle de tu contrato. Esta sección se puede conectar con el backend cuando esté listo.
-              </p>
+              {loadingContratos ? (
+                <p className="text-sm text-gray-600">Cargando contratos...</p>
+              ) : contratosError ? (
+                <p className="text-sm text-red-600">{contratosError}</p>
+              ) : contratos.length === 0 ? (
+                <p className="text-sm text-gray-600">No hay contratos asociados a tu cuenta.</p>
+              ) : (
+                <div className="space-y-4">
+                  {contratos.map((c) => (
+                    <div key={c.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-semibold text-gray-900">Contrato #{c.numero_contrato}</p>
+                        <span className="text-xs text-gray-500">{formatDate(c.fecha)}</span>
+                      </div>
+                      {c.observaciones && (
+                        <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">{c.observaciones}</p>
+                      )}
+                      {c.archivo_url && (
+                        <a
+                          href={c.archivo_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-block mt-3 text-sm text-blue-600 hover:underline"
+                        >
+                          Ver contrato
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )
@@ -48,6 +197,53 @@ const ClienteIB1Panel = () => {
             </div>
           </div>
         )
+      case 'puntos-compensacion':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Puntos / Compensación</h2>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 p-6 rounded-lg text-white">
+                  <h3 className="text-lg font-semibold mb-2">Tus Puntos Actuales</h3>
+                  <p className="text-4xl font-bold">0</p>
+                  <p className="text-sm mt-2">Puntos disponibles para canjear</p>
+                </div>
+                <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-lg text-white">
+                  <h3 className="text-lg font-semibold mb-2">Sistema de Acumulación</h3>
+                  <p className="text-3xl font-bold">30%</p>
+                  <p className="text-sm mt-2">Del valor de cada compra se convierte en puntos</p>
+                </div>
+              </div>
+              
+              <div className="mt-6 bg-gray-800 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-white mb-3">¿Cómo funcionan los puntos?</h3>
+                <ul className="space-y-2 text-sm text-gray-200">
+                  <li className="flex items-start">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Por cada compra, acumulas el 30% del valor en puntos</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Canjea tus puntos por descuentos en futuras reservas</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Accede a premios y beneficios exclusivos</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Tus puntos no tienen fecha de vencimiento</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-6 bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Historial de Puntos</h3>
+                <p className="text-sm text-gray-600">No hay movimientos registrados aún</p>
+              </div>
+            </div>
+          </div>
+        )
       case 'solicitar-reserva':
         return (
           <div className="space-y-4">
@@ -56,6 +252,88 @@ const ClienteIB1Panel = () => {
               <p className="text-sm text-gray-600">
                 Aquí podrás solicitar una nueva reserva. (Funcionalidad próximamente)
               </p>
+            </div>
+          </div>
+        )
+      case 'enviar-atencion':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Enviar a Atención</h2>
+            {successMessage && (
+              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                {successMessage}
+              </div>
+            )}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <form onSubmit={handleEnviarMensaje} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Asunto</label>
+                  <input
+                    type="text"
+                    value={asunto}
+                    onChange={(e) => setAsunto(e.target.value)}
+                    placeholder="Ej: Consulta sobre mi reserva, problema técnico, etc."
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={enviando}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Mensaje</label>
+                  <textarea
+                    value={nuevoMensaje}
+                    onChange={(e) => setNuevoMensaje(e.target.value)}
+                    placeholder="Describe tu problema o consulta de forma detallada..."
+                    className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={6}
+                    disabled={enviando}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={enviando}
+                  className="w-full px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+                >
+                  {enviando ? 'Enviando...' : 'Enviar Mensaje'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )
+      case 'bandeja-respuestas':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Bandeja de Respuestas</h2>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              {loadingRespuestas ? (
+                <p className="text-sm text-gray-600">Cargando respuestas...</p>
+              ) : respuestas.length === 0 ? (
+                <p className="text-sm text-gray-600">No tienes respuestas todavía.</p>
+              ) : (
+                <div className="space-y-4">
+                  {respuestas.map((msg) => (
+                    <div key={msg.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-gray-900">{msg.asunto}</p>
+                          <p className="text-xs text-gray-500">
+                            Respondido: {new Date(msg.fecha_respuesta || msg.fecha_creacion).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-semibold">Respondido</span>
+                      </div>
+                      <div className="mt-3">
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{msg.respuesta}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )
@@ -115,6 +393,18 @@ const ClienteIB1Panel = () => {
         </nav>
       </aside>
 
+      {/* Desktop header */}
+      <div className="hidden md:flex flex-col flex-1">
+        <div className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 text-white p-4 flex justify-end items-center border-b border-blue-600">
+          <NotificationBell />
+        </div>
+
+        {/* Main content area */}
+        <div className="flex-1 overflow-auto p-8">
+          {renderContent()}
+        </div>
+      </div>
+
       <div className="md:hidden bg-black text-white p-4 flex justify-between items-center w-full">
         <div className="flex items-center gap-2 text-xl font-bold">
           <div className="w-9 h-9 rounded-full bg-white border-2 border-blue-600 flex items-center justify-center">
@@ -122,9 +412,12 @@ const ClienteIB1Panel = () => {
           </div>
           Cliente Gold
         </div>
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {isSidebarOpen && (
@@ -175,7 +468,7 @@ const ClienteIB1Panel = () => {
         </aside>
       )}
 
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="md:hidden flex-1 p-8 overflow-y-auto">
         {/* Version selector */}
         <div className="mb-6 flex items-center gap-3">
           <button onClick={() => setVersion('BLUE')} className={`px-4 py-2 rounded-md font-semibold border-2 mr-2 ${version==='BLUE' ? 'bg-blue-500 text-white border-blue-700 shadow-lg' : 'bg-white text-blue-700 border-blue-300 hover:bg-blue-50'}`}>

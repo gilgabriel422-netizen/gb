@@ -3926,7 +3926,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                 <select
                   value={dashboardPeriod}
                   onChange={(e) => handleDashboardPeriodChange(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy font-bold dashboard-period-text"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy font-bold dashboard-period-text bg-blue-900 text-white"
                 >
                   <option value="yesterday">Ayer</option>
                   <option value="last_month">Mes Pasado</option>

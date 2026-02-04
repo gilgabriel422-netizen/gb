@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext'
+import NotificationBell from '../components/NotificationBell'
 
 const soporteId = 1; // Cambia por el ID real del usuario soporte
 
@@ -74,12 +75,15 @@ export default function SoportePanel() {
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <h2 style={{ margin: 0 }}>Panel de Soporte</h2>
-        <button
-          onClick={logout}
-          style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ef4444', color: '#b91c1c', background: 'transparent' }}
-        >
-          Salir
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <NotificationBell />
+          <button
+            onClick={logout}
+            style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ef4444', color: '#b91c1c', background: 'transparent' }}
+          >
+            Salir
+          </button>
+        </div>
       </div>
       <div style={{ display: 'flex', gap: 32 }}>
         {/* Lista de clientes */}

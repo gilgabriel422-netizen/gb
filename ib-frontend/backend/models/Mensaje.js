@@ -1,22 +1,47 @@
-const db = require('../config/database');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-class Mensaje {
-  static async crear({ remitente_id, destinatario_id, contenido, tipo }) {
-    const result = await db.query(
-      `INSERT INTO mensajes (remitente_id, destinatario_id, contenido, tipo, fecha_envio)
-       VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
-      [remitente_id, destinatario_id, contenido, tipo]
-    );
-    return result.rows[0];
+const Mensaje = sequelize.define('Mensaje', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  asunto: {
+    type: DataTypes.STRING(255),
+    allowNull: false
+  },
+  contenido: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  usuario_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  estado: {
+    type: DataTypes.ENUM('pendiente', 'en_proceso', 'respondido'),
+    defaultValue: 'pendiente'
+  },
+  respuesta: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  fecha_creacion: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  fecha_respuesta: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  tipo_remitente: {
+    type: DataTypes.ENUM('cliente', 'atención'),
+    defaultValue: 'cliente'
   }
-
-  static async obtenerPorCliente(clienteId) {
-    const result = await db.query(
-      `SELECT * FROM mensajes WHERE remitente_id = $1 OR destinatario_id = $1 ORDER BY fecha_envio ASC`,
-      [clienteId]
-    );
-    return result.rows;
-  }
-}
+}, {
+  timestamps: false,
+  tableName: 'mensajes'
+});
 
 module.exports = Mensaje;

@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function NotificationBell() {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [showPanel, setShowPanel] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    loadNotifications();
-    // Recargar notificaciones cada 30 segundos
-    const interval = setInterval(loadNotifications, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (user?.id) {
+      loadNotifications();
+      // Recargar notificaciones cada 30 segundos
+      const interval = setInterval(loadNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.id]);
 
   const loadNotifications = async () => {
     try {
       const api = await import('../services/api');
-      const response = await api.default.get('/notificaciones');
+      // Usar el usuarioId del usuario actual para filtrar notificaciones por rol
+      const response = await api.default.get(`/notificaciones?usuarioId=${user?.id}`);
       const notifs = response.data || [];
       setNotifications(notifs);
       setUnreadCount(notifs.filter(n => !n.leida).length);

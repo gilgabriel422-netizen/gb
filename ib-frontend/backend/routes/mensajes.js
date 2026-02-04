@@ -2,21 +2,91 @@ const express = require('express');
 const router = express.Router();
 const Mensaje = require('../models/Mensaje');
 
-// Enviar mensaje
-router.post('/', async (req, res) => {
-  const { remitente_id, destinatario_id, contenido, tipo } = req.body;
-  // Validación de campos obligatorios
-  if (!remitente_id || !destinatario_id || !contenido) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios' });
+// GET todos los mensajes (para la bandeja de soporte)
+router.get('/', async (req, res) => {
+  try {
+    const mensajes = await Mensaje.findAll({
+      order: [['fecha_creacion', 'DESC']]
+    });
+    res.json(mensajes);
+  } catch (error) {
+    console.error('Error obteniendo mensajes:', error);
+    res.status(500).json({ error: 'Error obteniendo mensajes' });
   }
-  const mensaje = await Mensaje.crear({ remitente_id, destinatario_id, contenido, tipo });
-  res.json(mensaje);
 });
 
-// Obtener mensajes de un cliente
-router.get('/:clienteId', async (req, res) => {
-  const mensajes = await Mensaje.obtenerPorCliente(req.params.clienteId);
-  res.json(mensajes);
+// POST crear un nuevo mensaje
+router.post('/', async (req, res) => {
+  try {
+    const { asunto, contenido, usuario_id, tipo_remitente } = req.body;
+
+    // Validación
+    if (!asunto || !contenido || !usuario_id) {
+      return res.status(400).json({ error: 'Faltan campos: asunto, contenido, usuario_id' });
+    }
+
+    const mensaje = await Mensaje.create({
+      asunto,
+      contenido,
+      usuario_id,
+      tipo_remitente: tipo_remitente || 'cliente',
+      estado: 'pendiente',
+      fecha_creacion: new Date()
+    });
+
+    res.status(201).json(mensaje);
+  } catch (error) {
+    console.error('Error creando mensaje:', error);
+    res.status(500).json({ error: 'Error creando mensaje' });
+  }
+});
+
+// PUT actualizar un mensaje (para responder)
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { respuesta, estado, fecha_respuesta } = req.body;
+
+    const mensaje = await Mensaje.findByPk(id);
+    if (!mensaje) {
+      return res.status(404).json({ error: 'Mensaje no encontrado' });
+    }
+
+    // Actualizar campos si se envían
+    if (respuesta !== undefined) {
+      mensaje.respuesta = respuesta;
+    }
+    if (estado !== undefined) {
+      mensaje.estado = estado;
+    }
+    if (fecha_respuesta !== undefined) {
+      mensaje.fecha_respuesta = fecha_respuesta;
+    }
+
+    await mensaje.save();
+    res.json(mensaje);
+  } catch (error) {
+    console.error('Error actualizando mensaje:', error);
+    res.status(500).json({ error: 'Error actualizando mensaje' });
+  }
+});
+
+// DELETE eliminar un mensaje
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const mensaje = await Mensaje.findByPk(id);
+    if (!mensaje) {
+      return res.status(404).json({ error: 'Mensaje no encontrado' });
+    }
+
+    await mensaje.destroy();
+    res.json({ message: 'Mensaje eliminado correctamente' });
+  } catch (error) {
+    console.error('Error eliminando mensaje:', error);
+    res.status(500).json({ error: 'Error eliminando mensaje' });
+  }
 });
 
 module.exports = router;

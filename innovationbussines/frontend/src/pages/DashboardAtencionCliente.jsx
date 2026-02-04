@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import './DashboardGold.css'
 import { useAuth } from '../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
+import NotificationBell from '../components/NotificationBell'
 
 export default function DashboardAtencionCliente() {
   const { authed, logout } = useAuth()
+  const navigate = useNavigate()
   const [requerimientos] = useState([])
   const [postventa] = useState([])
   const [showRequerimiento, setShowRequerimiento] = useState(false)
@@ -38,16 +41,25 @@ export default function DashboardAtencionCliente() {
     <div className="dashboard-gold-bg min-h-screen p-6">
       <div className="max-w-6xl mx-auto flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-black">Panel de Atención</h1>
-        <button
-          className="px-4 py-2 border rounded text-red-700 hover:bg-red-50"
-          onClick={logout}
-        >
-          Salir
-        </button>
+        <div className="flex items-center gap-4">
+          <NotificationBell />
+          <button
+            className="px-4 py-2 border rounded text-red-700 hover:bg-red-50"
+            onClick={logout}
+          >
+            Salir
+          </button>
+        </div>
       </div>
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-1 bg-white bg-opacity-80 rounded-lg shadow p-4">
           <h2 className="text-xl font-bold mb-2 text-black">Panel Atención</h2>
+          <button
+            className="w-full mb-2 px-3 py-2 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded hover:opacity-90 font-semibold"
+            onClick={() => navigate('/bandeja-mensajes')}
+          >
+            📧 Bandeja de Mensajes
+          </button>
           <button
             className="w-full mb-2 px-3 py-2 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded"
             onClick={() => setShowRequerimiento(true)}

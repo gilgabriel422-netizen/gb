@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './DashboardGold.css';
 import { useAuth } from '../contexts/AuthContext'
+import NotificationBell from '../components/NotificationBell'
 
 export default function DashboardPostventa() {
   const { user, logout } = useAuth()
@@ -35,7 +36,8 @@ export default function DashboardPostventa() {
         <main className="col-span-9">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold">Panel de Postventa</h1>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <NotificationBell />
               <button className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-700 rounded text-black" onClick={() => window.location.reload()}>Actualizar</button>
               <button className="px-4 py-2 border rounded text-red-700 hover:bg-red-50" onClick={logout}>Salir</button>
             </div>

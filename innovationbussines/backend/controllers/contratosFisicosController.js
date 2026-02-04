@@ -27,6 +27,20 @@ const ContratoFisico = require('../models/ContratoFisico');
      res.status(500).json({ error: error.message });
    }
  };
+
+// Obtener contratos físicos por cliente
+exports.getContratosFisicosByCliente = async (req, res) => {
+  try {
+    const { clienteId } = req.params;
+    const contratos = await ContratoFisico.findAll({
+      where: { cliente_id: clienteId },
+      order: [['fecha_creacion', 'DESC']]
+    });
+    res.json(contratos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
  
  // Obtener un contrato físico por ID
  exports.getContratoFisicoById = async (req, res) => {

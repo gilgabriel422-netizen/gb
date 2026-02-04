@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext'
+import NotificationBell from '../components/NotificationBell'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -26,7 +27,8 @@ const ContratosFisicosPanel = () => {
     <div className="container mx-auto py-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Contratos Físicos Escaneados</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <NotificationBell />
           <button
             onClick={() => (window.location.href = '/dashboard-contratos')}
             className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition"

@@ -12,6 +12,7 @@ const SoportePage = lazy(() => import('./pages/SoportePAge.jsx'));
 const Reservas = lazy(() => import('./pages/Reservas.jsx'));
 const Beneficios = lazy(() => import('./pages/Beneficios.jsx'));
 const EnviarAtencion = lazy(() => import('./pages/EnviarAtencion.jsx'));
+const BandejaMensajesSoporte = lazy(() => import('./pages/BandejaMensajesSoporte.jsx'));
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -128,6 +129,7 @@ function App() {
             <Route path="/reservas" element={<Suspense fallback={<div>Cargando...</div>}><Reservas /><WhatsAppFloat /></Suspense>} />
             <Route path="/beneficios" element={<Suspense fallback={<div>Cargando...</div>}><Beneficios /><WhatsAppFloat /></Suspense>} />
             <Route path="/enviar-atencion" element={<Suspense fallback={<div>Cargando...</div>}><EnviarAtencion /><WhatsAppFloat /></Suspense>} />
+            <Route path="/bandeja-mensajes" element={<ProtectedRoute><Suspense fallback={<div>Cargando...</div>}><BandejaMensajesSoporte /><WhatsAppFloat /></Suspense></ProtectedRoute>} />
             <Route path="/dashboard-cobranzas" element={<ProtectedRoute><Suspense fallback={<div>Cargando...</div>}><CobranzasPanelModified /><WhatsAppFloat /></Suspense></ProtectedRoute>} />
             <Route path="/dashboard-atencion" element={<ProtectedRoute><Suspense fallback={<div>Cargando...</div>}><DashboardAtencionCliente /><WhatsAppFloat /></Suspense></ProtectedRoute>} />
             <Route path="/dashboard-postventa" element={<ProtectedRoute><Suspense fallback={<div>Cargando...</div>}><DashboardPostventa /><WhatsAppFloat /></Suspense></ProtectedRoute>} />
