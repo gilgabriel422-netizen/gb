@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import WhatsAppFloat from '../components/WhatsAppFloat'
 import { useAuth } from '../contexts/AuthContext'
 import NotificationBell from '../components/NotificationBell'
+import VisorPlantillaContrato from '../components/VisorPlantillaContrato'
+import BeneficiosCliente from '../components/BeneficiosCliente'
+import SolicitarReserva from '../components/SolicitarReserva'
 
 const ClientePanel = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
@@ -17,6 +20,8 @@ const ClientePanel = () => {
   const [contratos, setContratos] = React.useState([])
   const [loadingContratos, setLoadingContratos] = React.useState(true)
   const [contratosError, setContratosError] = React.useState('')
+  const [cliente, setCliente] = React.useState(null)
+  const [loadingCliente, setLoadingCliente] = React.useState(true)
   const { logout, user } = useAuth()
   const navigate = useNavigate()
 
@@ -28,6 +33,41 @@ const ClientePanel = () => {
       day: 'numeric'
     })
   }
+
+  // Calcular puntos del cliente (30% del total_amount)
+  const calcularPuntos = () => {
+    if (!cliente || !cliente.total_amount) return 0
+    return Math.floor(parseFloat(cliente.total_amount) * 0.30)
+  }
+
+  const formatPuntos = (puntos) => {
+    return puntos.toLocaleString('es-ES')
+  }
+
+  React.useEffect(() => {
+    if (!user) return
+    const loadCliente = async () => {
+      setLoadingCliente(true)
+      try {
+        const api = await import('../services/api')
+        // Obtener todos los clientes y filtrar por usuario_asignado_id
+        const response = await api.default.get('/clientes')
+        const clientes = response.data?.clients || []
+        const clienteAsignado = clientes.find(c => Number(c.usuario_asignado_id) === Number(user.id))
+        if (clienteAsignado) {
+          setCliente(clienteAsignado)
+        } else {
+          setCliente(null)
+        }
+      } catch (error) {
+        console.error('Error cargando cliente:', error)
+        setCliente(null)
+      } finally {
+        setLoadingCliente(false)
+      }
+    }
+    loadCliente()
+  }, [user])
 
   React.useEffect(() => {
     if (!user) return
@@ -144,7 +184,9 @@ const ClientePanel = () => {
         return (
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Contrato</h2>
+            <VisorPlantillaContrato cliente={cliente} />
             <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="font-semibold mb-3">Contratos Físicos</h3>
               {loadingContratos ? (
                 <p className="text-sm text-gray-600">Cargando contratos...</p>
               ) : contratosError ? (
@@ -181,23 +223,7 @@ const ClientePanel = () => {
         )
       case 'beneficios':
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Beneficios</h2>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <p className="text-sm text-gray-600">
-                Consulta beneficios activos, promociones y descuentos exclusivos para clientes.
-              </p>
-            </div>
-            <div className="bg-emerald-50 p-6 rounded-lg shadow-md text-gray-800">
-              <h3 className="text-lg font-semibold text-emerald-800 mb-2">Sistema de Puntos / Compensación</h3>
-              <p className="text-sm text-emerald-900 mb-2">
-                Por cada compra que realices, acumulas el <b>30%</b> del valor en puntos de compensación. ¡Canjéalos por descuentos o premios exclusivos!
-              </p>
-              <p className="text-sm text-emerald-900">
-                <b>Tus puntos actuales:</b> <span id="puntos-cliente" className="font-bold">(próximamente)</span>
-              </p>
-            </div>
-          </div>
+          <BeneficiosCliente clienteId={user?.id || cliente?.id} />
         )
       case 'puntos-compensacion':
         return (
@@ -207,7 +233,7 @@ const ClientePanel = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 p-6 rounded-lg text-white">
                   <h3 className="text-lg font-semibold mb-2">Tus Puntos Actuales</h3>
-                  <p className="text-4xl font-bold">0</p>
+                  <p className="text-4xl font-bold">{formatPuntos(calcularPuntos())}</p>
                   <p className="text-sm mt-2">Puntos disponibles para canjear</p>
                 </div>
                 <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-lg text-white">
@@ -248,14 +274,7 @@ const ClientePanel = () => {
         )
       case 'solicitar-reserva':
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Solicitar Reserva</h2>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <p className="text-sm text-gray-600">
-                Aquí podrás solicitar una nueva reserva. (Funcionalidad próximamente)
-              </p>
-            </div>
-          </div>
+          <SolicitarReserva clienteId={user?.id || cliente?.id} />
         )
       case 'enviar-atencion':
         return (

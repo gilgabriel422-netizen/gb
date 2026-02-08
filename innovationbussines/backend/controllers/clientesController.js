@@ -37,18 +37,8 @@ exports.getClienteById = async (req, res) => {
   }
 };
 
-// Crear nuevo cliente
-exports.createCliente = async (req, res) => {
-  try {
-    console.log('📥 Datos recibidos para crear cliente:', req.body);
-    
-    const cliente = await Cliente.create(req.body);
-    res.status(201).json(cliente);
-  } catch (error) {
-    console.error('Error al crear cliente:', error);
-    res.status(500).json({ error: 'Error al crear cliente' });
-  }
-};
+// DUPLICADO ELIMINADO - Ver definición principal más abajo (línea ~215)
+// exports.createCliente = async (req, res) => { ... }
 
 // Actualizar cliente
 exports.updateCliente = async (req, res) => {
@@ -112,18 +102,8 @@ exports.getClienteById = async (req, res) => {
   }
 };
 
-// Crear nuevo cliente
-exports.createCliente = async (req, res) => {
-  try {
-    console.log('📥 Datos recibidos para crear cliente:', req.body);
-    
-    const cliente = await Cliente.create(req.body);
-    res.status(201).json(cliente);
-  } catch (error) {
-    console.error('Error al crear cliente:', error);
-    res.status(500).json({ error: 'Error al crear cliente' });
-  }
-};
+// DUPLICADO ELIMINADO - Ver definición principal más abajo (línea ~200)
+// exports.createCliente = async (req, res) => { ... }
 
 // Actualizar cliente
 exports.updateCliente = async (req, res) => {
@@ -216,69 +196,28 @@ exports.createCliente = async (req, res) => {
   try {
     console.log('📥 Datos recibidos para crear cliente:', req.body);
     
-    // Mapear campos del frontend al backend (city/country → ciudad/pais; pagaré)
-    const clientData = {
-      ...req.body,
-      ciudad: req.body.city || req.body.ciudad,
-      pais: req.body.country || req.body.pais,
-      fecha_pagare: req.body.fecha_pagare ?? req.body.pagare_fecha,
-      monto_pagare: req.body.monto_pagare ?? req.body.pagare_monto,
-      pagare_cuotas: req.body.pagare_cuotas ?? req.body.cantidad_cuotas,
-      pagare_cuotas_asumidas: req.body.pagare_cuotas_asumidas ?? req.body.cuotas_asumidas
-    };
+    // Usar crearClienteConUsuario para crear cliente + usuario + contrato
+    const crearClienteConUsuario = require('../utils/crearClienteConUsuario');
     
-    // Eliminar campos duplicados
-    delete clientData.city;
-    delete clientData.country;
-    delete clientData.pagare_fecha;
-    delete clientData.pagare_monto;
+    // Determinar el rol basado en categoria_cliente o usar 'blue' por defecto
+    const rolCliente = req.body.categoria_cliente?.toLowerCase() || 'blue';
     
-    // Validar campos requeridos
-    const { first_name, last_name, email, contract_number } = clientData;
+    const resultado = await crearClienteConUsuario(req.body, rolCliente);
     
-    if (!first_name || !last_name) {
-      return res.status(400).json({ 
-        error: 'Los campos first_name y last_name son obligatorios',
-        received: { first_name, last_name }
-      });
-    }
-    
-    if (!email) {
-      return res.status(400).json({ 
-        error: 'El campo email es obligatorio',
-        received: { email }
-      });
-    }
-    
-    if (!contract_number) {
-      return res.status(400).json({ 
-        error: 'El campo contract_number es obligatorio',
-        received: { contract_number }
-      });
-    }
-    
-    const nuevoCliente = await Cliente.create(clientData);
-    console.log('✅ Cliente creado exitosamente:', nuevoCliente.id);
-    res.status(201).json(nuevoCliente);
+    // Retornar respuesta con cliente, usuario y credenciales
+    res.status(201).json({
+      success: true,
+      cliente: resultado.cliente,
+      usuario: resultado.usuario,
+      contrato: resultado.contrato,
+      credenciales: resultado.credenciales,
+      mensaje: resultado.mensaje
+    });
   } catch (error) {
-    console.error('❌ Error al crear cliente:', error);
-    
-    // Manejar errores de duplicado
-    if (error.code === '23505') { // Código de error de PostgreSQL para violación de constraint unique
-      if (error.constraint === 'clientes_email_key') {
-        return res.status(400).json({ error: 'Ya existe un cliente con ese email' });
-      }
-      if (error.constraint === 'clientes_contract_number_key') {
-        return res.status(400).json({ 
-          error: 'Ya existe un cliente con ese número de contrato',
-          detail: 'Por favor cambia el sufijo o número del contrato'
-        });
-      }
-    }
-    
+    console.error('Error al crear cliente:', error);
     res.status(500).json({ 
-      error: 'Error al crear cliente',
-      details: error.message 
+      success: false,
+      error: error.message || 'Error al crear cliente' 
     });
   }
 };
@@ -301,21 +240,6 @@ exports.updateCliente = async (req, res) => {
 // Eliminar cliente
 exports.deleteCliente = async (req, res) => {
   try {
-    // Validar contraseña de administrador
-    const { adminEmail, adminPassword } = req.body;
-    if (!adminEmail || !adminPassword) {
-      return res.status(400).json({ error: 'Email y contraseña de administrador requeridos' });
-    }
-    const Usuario = require('../models/Usuario');
-    const admin = await Usuario.getByEmail(adminEmail);
-    if (!admin || admin.rol !== 'admin') {
-      return res.status(401).json({ error: 'Usuario administrador no encontrado' });
-    }
-    const isValid = await Usuario.validatePassword(adminPassword, admin.password);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Contraseña incorrecta' });
-    }
-
     const affectedRows = await Cliente.delete(req.params.id);
     if (affectedRows === 0) {
       return res.status(404).json({ error: 'Cliente no encontrado' });
@@ -366,5 +290,35 @@ exports.getClientesCreadoPorAdmin = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener clientes creados por admin:', error);
     res.status(500).json({ error: 'Error al obtener clientes creados por admin' });
+  }
+};
+
+/**
+ * Crear cliente con usuario asociado
+ * POST /api/clientes/crear-con-usuario
+ * Body: { clienteData, rolCliente: 'blue'|'gold'|'black' }
+ */
+exports.crearClienteConUsuario = async (req, res) => {
+  try {
+    const { clienteData, rolCliente = 'blue' } = req.body;
+
+    if (!clienteData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Datos del cliente requeridos'
+      });
+    }
+
+    const crearClienteConUsuario = require('../utils/crearClienteConUsuario');
+    const resultado = await crearClienteConUsuario(clienteData, rolCliente);
+
+    res.status(201).json(resultado);
+  } catch (error) {
+    console.error('❌ Error al crear cliente con usuario:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al crear cliente con usuario',
+      error: error.message
+    });
   }
 };

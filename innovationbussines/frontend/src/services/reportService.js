@@ -93,7 +93,7 @@ const reportService = {
   getLastMonthSummary: async (period = 'this_month') => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await api.get(`/reports/last-month-summary?period=${period}`, {
+      const response = await api.get(`/reportes/summary?period=${period}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -102,7 +102,12 @@ const reportService = {
       return response.data;
     } catch (error) {
       console.error('Error obteniendo sumatorias del período:', error);
-      throw error;
+      // Retornar datos por defecto si falla
+      return {
+        sales: { total_ventas: 0, total_monto: 0 },
+        collections: { total_cobranzas: 0, total_monto: 0 },
+        bookings: { total_reservas: 0, total_monto: 0 }
+      };
     }
   },
 

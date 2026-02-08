@@ -62,6 +62,7 @@ export default function DashboardContratos() {
           <h2 className="text-xl font-bold mb-4">Menú</h2>
           <ul className="space-y-2 text-sm">
             <li className="py-2 px-3 bg-yellow-200 rounded cursor-pointer hover:bg-yellow-300">Contratos</li>
+            <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => window.location.href = '/gestion-contratos'}>📋 Gestión de Contratos</li>
             <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => window.location.href = '/reservas'}>Reservas</li>
             <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => window.location.href = '/beneficios'}>Beneficios</li>
             <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => window.location.href = '/contratos-fisicos'}>Contratos Físicos</li>

@@ -587,14 +587,8 @@ export const clientService = {
     return response.data;
   },
 
-  deleteClient: async (id, adminEmail, adminPassword) => {
-    // Axios requiere que el body vaya en la opción 'data' para DELETE
-    const response = await api.delete(`/clientes/${id}`, {
-      data: {
-        adminEmail,
-        adminPassword
-      }
-    });
+  deleteClient: async (id) => {
+    const response = await api.delete(`/clientes/${id}`);
     return response.data;
   },
 

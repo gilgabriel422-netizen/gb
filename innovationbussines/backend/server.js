@@ -59,12 +59,19 @@ const reservationAgendaRoutes = require('./routes/reservation-agenda');
 const visaAgendaRoutes = require('./routes/visa-agenda');
 const flightAgendaRoutes = require('./routes/flight-agenda');
 const clientTransfersRoutes = require('./routes/client-transfers');
+const contratoRoutes = require('./routes/contratoRoutes');
+const reportesRoutes = require('./routes/reportes');
+const beneficiosRoutes = require('./routes/beneficios');
+const cartasRoutes = require('./routes/cartas');
+const adjuntosRoutes = require('./routes/adjuntosRoutes');
+const plantillasRoutes = require('./routes/plantillasRoutes');
 
 // Usar rutas
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/contactos', contactosRoutes);
 app.use('/api/actividades', actividadesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/contratos', contratoRoutes);
 
 // Rutas de innovation
 app.use('/api/paquetes', paquetesRoutes);
@@ -75,6 +82,14 @@ app.use('/api/locaciones', locacionesRoutes);
 app.use('/api/departamentos', departamentosRoutes);
 app.use('/api/contratos-fisicos', contratosFisicosRoutes);
 app.use('/api/reservas', reservasRoutes);
+app.use('/api/reportes', reportesRoutes);
+app.use('/api/beneficios', beneficiosRoutes);
+app.use('/api/cartas', cartasRoutes);
+app.use('/api/adjuntos', adjuntosRoutes);
+app.use('/api/plantillas', plantillasRoutes);
+
+// Servir archivos estáticos (uploads)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rutas mock (para evitar errores 404 en el frontend)
 app.use('/api/bookings', bookingsRoutes);
@@ -114,6 +129,16 @@ async function iniciar() {
     // Sincronizar Sequelize con la base de datos (sin recrear tablas)
     await sequelize.sync({ alter: false });
     console.log('✅ Sequelize sincronizado con la base de datos');
+
+    // Actualizar usuario con email incorrecto
+    try {
+      await sequelize.query(
+        `UPDATE usuarios SET email = '0005@cliente.crm.com' 
+         WHERE email LIKE '%KMPRY SDSD%'`
+      );
+    } catch (updateErr) {
+      // Si falla, continuar de todas formas
+    }
 
     const server = app.listen(PORT, HOST, () => {
       console.log(`Servidor corriendo en el puerto ${PORT}`);

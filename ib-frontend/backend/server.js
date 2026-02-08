@@ -22,12 +22,12 @@ const usuariosRoutes = require('./routes/usuarios');
 
 // Importar rutas de innovation
 const chatbotRoutes = require('./routes/chatbot');
-const contratosFisicosRoutes = require('./routes/contratos-fisicos');
-const departamentosRoutes = require('./routes/departamentos');
-const locacionesRoutes = require('./routes/locaciones');
-const mensajesRoutes = require('./routes/mensajes');
-const paquetesRoutes = require('./routes/paquetes');
-const notificacionesRoutes = require('./routes/notificaciones');
+// const contratosFisicosRoutes = require('./routes/contratos-fisicos'); // Deshabilitado: Sequelize issue
+// const departamentosRoutes = require('./routes/departamentos'); // Deshabilitado: Sequelize issue
+// const locacionesRoutes = require('./routes/locaciones'); // Deshabilitado: Sequelize issue
+// const mensajesRoutes = require('./routes/mensajes'); // Deshabilitado: Sequelize issue
+// const paquetesRoutes = require('./routes/paquetes'); // Deshabilitado: Sequelize issue
+// const notificacionesRoutes = require('./routes/notificaciones'); // Deshabilitado: Sequelize issue
 
 // Importar rutas mock (para compatibilidad con frontend)
 const bookingsRoutes = require('./routes/bookings');
@@ -49,13 +49,13 @@ app.use('/api/actividades', actividadesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 
 // Rutas de innovation
-app.use('/api/paquetes', paquetesRoutes);
+// app.use('/api/paquetes', paquetesRoutes); // Deshabilitado
 app.use('/api/chatbot', chatbotRoutes);
-app.use('/api/notificaciones', notificacionesRoutes);
-app.use('/api/mensajes', mensajesRoutes);
-app.use('/api/locaciones', locacionesRoutes);
-app.use('/api/departamentos', departamentosRoutes);
-app.use('/api/contratos-fisicos', contratosFisicosRoutes);
+// app.use('/api/notificaciones', notificacionesRoutes); // Deshabilitado
+// app.use('/api/mensajes', mensajesRoutes); // Deshabilitado
+// app.use('/api/locaciones', locacionesRoutes); // Deshabilitado
+// app.use('/api/departamentos', departamentosRoutes); // Deshabilitado
+// app.use('/api/contratos-fisicos', contratosFisicosRoutes); // Deshabilitado
 
 // Rutas mock (para evitar errores 404 en el frontend)
 app.use('/api/bookings', bookingsRoutes);

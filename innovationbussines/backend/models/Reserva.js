@@ -7,13 +7,21 @@ const Reserva = sequelize.define('Reserva', {
     autoIncrement: true,
     primaryKey: true
   },
+  usuario_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
   cliente_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: 'Clientes',
       key: 'id'
     }
+  },
+  paquete_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
   },
   numero_reserva: {
     type: DataTypes.STRING,
@@ -36,6 +44,10 @@ const Reserva = sequelize.define('Reserva', {
     type: DataTypes.INTEGER,
     allowNull: true,
     defaultValue: 1
+  },
+  tipo_habitacion: {
+    type: DataTypes.STRING,
+    allowNull: true
   },
   ciudad: {
     type: DataTypes.STRING,
@@ -62,5 +74,7 @@ const Reserva = sequelize.define('Reserva', {
   tableName: 'reservas',
   timestamps: false
 });
+
+module.exports = Reserva;
 
 module.exports = Reserva;

@@ -61,16 +61,24 @@ class Usuario extends Model {
   static async validatePassword(plainPassword, hashedPassword) {
     console.log('📝 DEBUG validatePassword:');
     console.log('  plainPassword:', plainPassword);
-    console.log('  hashedPassword:', hashedPassword);
-    console.log('  bcrypt:', typeof bcrypt);
-    console.log('  bcrypt.compare:', typeof bcrypt.compare);
+    console.log('  hashedPassword:', hashedPassword.substring(0, 20) + '...');
     
     try {
+      // Si la contraseña almacenada no es un hash bcrypt, compararla directamente
+      if (!hashedPassword.startsWith('$2a$') && !hashedPassword.startsWith('$2b$')) {
+        console.log('  Comparación de texto plano');
+        const result = plainPassword === hashedPassword;
+        console.log('  Resultado:', result);
+        return result;
+      }
+      
+      // Si es un hash bcrypt, usar bcrypt.compare
+      console.log('  Comparación con bcrypt');
       const result = await bcrypt.compare(plainPassword, hashedPassword);
       console.log('  Resultado:', result);
       return result;
     } catch (err) {
-      console.error('  ERROR en bcrypt.compare:', err);
+      console.error('  ERROR en validación:', err);
       throw err;
     }
   }

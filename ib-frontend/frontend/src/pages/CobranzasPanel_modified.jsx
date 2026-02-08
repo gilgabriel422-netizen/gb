@@ -11,9 +11,7 @@ const CobranzasPanel = () => {
 }
 
 export default CobranzasPanel
-      
-      setLoading(true)
-      await clientManagementService.createClientManagement(managementFormData)
+
       alert('GestiÃ³n registrada exitosamente')
       setShowManagementModal(false)
       setSelectedClientForManagement(null)

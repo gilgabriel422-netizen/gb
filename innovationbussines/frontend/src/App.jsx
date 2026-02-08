@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react'
 const DashboardCobranzas = lazy(() => import('./pages/DashboardCobranzas.jsx'));
 const CobranzasPanelModified = lazy(() => import('./pages/CobranzasPanel_modified.jsx'));
 const DashboardContratos = lazy(() => import('./pages/DashboardContratos.jsx'));
+const GestionContratos = lazy(() => import('./pages/GestionContratos.jsx'));
 const DashboardAtencionCliente = lazy(() => import('./pages/DashboardAtencionCliente.jsx'));
 const DashboardPostventa = lazy(() => import('./pages/DashboardPostventa.jsx'));
 const PaquetesAdmin = lazy(() => import('./pages/PaquetesAdmin.jsx'));
@@ -126,6 +127,7 @@ function App() {
             {/* Removed /admin intermediate redirect route - dashboards accessed directly after login */}
             {/* /dashboard-cobranzas removed; cobranzas users are redirected to /admin */}
             <Route path="/dashboard-contratos" element={<Suspense fallback={<div>Cargando...</div>}><DashboardContratos /><WhatsAppFloat /></Suspense>} />
+            <Route path="/gestion-contratos" element={<Suspense fallback={<div>Cargando...</div>}><GestionContratos /><WhatsAppFloat /></Suspense>} />
             <Route path="/reservas" element={<Suspense fallback={<div>Cargando...</div>}><Reservas /><WhatsAppFloat /></Suspense>} />
             <Route path="/beneficios" element={<Suspense fallback={<div>Cargando...</div>}><Beneficios /><WhatsAppFloat /></Suspense>} />
             <Route path="/enviar-atencion" element={<Suspense fallback={<div>Cargando...</div>}><EnviarAtencion /><WhatsAppFloat /></Suspense>} />

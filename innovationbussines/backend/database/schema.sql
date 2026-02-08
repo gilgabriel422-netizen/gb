@@ -57,8 +57,8 @@ CREATE TABLE clientes (
   -- Información de paquete
   total_nights INTEGER DEFAULT 0,
   remaining_nights INTEGER DEFAULT 0,
-  años INTEGER DEFAULT 0,
-  años_indefinido BOOLEAN DEFAULT FALSE,
+  anos INTEGER DEFAULT 0,
+  anos_indefinido BOOLEAN DEFAULT FALSE,
   international_bonus VARCHAR(10) DEFAULT 'No' CHECK (international_bonus IN ('Si', 'No')),
   
   -- Información financiera

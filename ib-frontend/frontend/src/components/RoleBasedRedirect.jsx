@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import AdminPanelWrapper from "./AdminPanelWrapper";
 import EmployeePanel from "../pages/EmployeePanel";
-import CobranzasPanel from "../pages/CobranzasPanel_modified";
+import CobranzasPanel from "../pages/CobranzasPanel";
 import ClientePanel from "../pages/ClientePanel";
 import ClienteIB1Panel from "../pages/ClienteIB1Panel";
 import ClienteIB2Panel from "../pages/ClienteIB2Panel";
