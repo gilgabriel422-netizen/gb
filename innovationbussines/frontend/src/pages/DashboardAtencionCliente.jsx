@@ -13,6 +13,8 @@ export default function DashboardAtencionCliente() {
   const [showEnviarPostventa, setShowEnviarPostventa] = useState(false)
   const [selectedCliente, setSelectedCliente] = useState(null)
   const [clients, setClients] = useState([])
+  const [reservasPendientes, setReservasPendientes] = useState([])
+  const [loadingReservas, setLoadingReservas] = useState(false)
 
   useEffect(() => {
     if (!authed) return
@@ -30,12 +32,35 @@ export default function DashboardAtencionCliente() {
             : (c.usuario_asignado_nombre || '').toLowerCase().includes('atenci')
         )
         setClients(filtered)
+        
+        // Cargar reservas pendientes
+        cargarReservasPendientes()
       } catch (e) {
         console.error(e)
       }
     }
     load()
   }, [authed])
+
+  const cargarReservasPendientes = async () => {
+    try {
+      setLoadingReservas(true)
+      const api = await import('../services/api')
+      console.log('📍 Cargando reservas desde /api/reservas...')
+      const response = await api.default.get('/api/reservas')
+      console.log('📦 Respuesta recibida:', response.data)
+      const reservas = Array.isArray(response.data) ? response.data : []
+      console.log('🔍 Total de reservas:', reservas.length)
+      const pendientes = reservas.filter(r => r.estado === 'pendiente')
+      console.log('⏳ Reservas pendientes:', pendientes.length, pendientes)
+      setReservasPendientes(pendientes)
+    } catch (error) {
+      console.error('❌ Error cargando reservas:', error)
+      setReservasPendientes([])
+    } finally {
+      setLoadingReservas(false)
+    }
+  }
 
   return (
     <div className="dashboard-gold-bg min-h-screen p-6">
@@ -131,6 +156,52 @@ export default function DashboardAtencionCliente() {
                 <li key={i} className="border-b py-1">{p.cliente} - {p.motivo}</li>
               ))}
             </ul>
+          </div>
+
+          <div className="bg-white bg-opacity-80 rounded-lg shadow p-4">
+            <h2 className="text-xl font-bold text-black">📅 Reservas Pendientes</h2>
+            {loadingReservas ? (
+              <p className="text-gray-600">Cargando reservas...</p>
+            ) : reservasPendientes.length === 0 ? (
+              <p className="text-gray-600">No hay reservas pendientes</p>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {reservasPendientes.map((res) => (
+                  <li key={res.id} className="border-l-4 border-yellow-500 bg-yellow-50 p-3 rounded">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="font-semibold">Reserva #{res.numero_reserva}</p>
+                        <p className="text-sm text-gray-700">
+                          Cliente ID: {res.cliente_id || res.usuario_id}
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          📅 {res.fecha_entrada ? new Date(res.fecha_entrada).toLocaleDateString('es-ES') : 'N/A'} - {res.fecha_salida ? new Date(res.fecha_salida).toLocaleDateString('es-ES') : 'N/A'}
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          👥 {res.personas} {res.personas === 1 ? 'persona' : 'personas'} | {res.noches} {res.noches === 1 ? 'noche' : 'noches'}
+                        </p>
+                        {res.tipo_habitacion && (
+                          <p className="text-sm text-gray-700">
+                            🏨 Tipo: {res.tipo_habitacion}
+                          </p>
+                        )}
+                        {res.observaciones && (
+                          <p className="text-sm text-gray-700 mt-1">
+                            📝 {res.observaciones}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        className="ml-2 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm"
+                        onClick={() => alert('Función para confirmar reserva próximamente')}
+                      >
+                        Confirmar
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>

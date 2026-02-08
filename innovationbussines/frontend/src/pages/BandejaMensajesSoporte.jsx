@@ -103,10 +103,10 @@ export default function BandejaMensajesSoporte() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-3xl font-bold">Bandeja de Mensajes</h1>
           <button
-            onClick={logout}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+            onClick={() => navigate('/dashboard-atencion')}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
           >
-            Salir
+            ← Volver
           </button>
         </div>
       </div>

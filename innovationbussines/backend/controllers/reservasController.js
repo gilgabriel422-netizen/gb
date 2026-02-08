@@ -1,16 +1,22 @@
 const Reserva = require('../models/Reserva');
 const Cliente = require('../models/Cliente');
+const sequelize = require('../config/database');
 
 exports.getAllReservas = async (req, res) => {
   try {
-    const reservas = await Reserva.findAll({
-      include: [{ model: Cliente, attributes: ['id', 'first_name', 'last_name', 'email'] }],
-      order: [['fecha_creacion', 'DESC']]
+    // Usar raw query para evitar problemas con FK
+    const result = await sequelize.query(`
+      SELECT * FROM reservas 
+      ORDER BY fecha_creacion DESC
+    `, {
+      type: sequelize.QueryTypes.SELECT
     });
-    res.json(reservas);
+    
+    console.log('✅ Reservas obtenidas:', result.length);
+    res.json(result);
   } catch (error) {
     console.error('Error al obtener reservas:', error);
-    res.status(500).json({ error: 'Error al obtener reservas' });
+    res.status(500).json({ error: 'Error al obtener reservas', detalle: error.message });
   }
 };
 
@@ -31,25 +37,66 @@ exports.getReservaById = async (req, res) => {
 
 exports.createReserva = async (req, res) => {
   try {
-    const { cliente_id, numero_reserva, fecha_entrada, fecha_salida, noches, personas, ciudad, valor_total, observaciones } = req.body;
+    const { 
+      cliente_id, 
+      usuario_id,
+      paquete_id,
+      fecha_inicio, 
+      fecha_fin, 
+      cantidad_noches, 
+      cantidad_personas, 
+      tipo_habitacion,
+      estado,
+      observaciones 
+    } = req.body;
+
+    // Usar usuario_id del token si no viene en el body
+    const userIdFromToken = req.user?.id;
+    const finalClienteId = cliente_id || usuario_id || userIdFromToken;
+
+    if (!finalClienteId) {
+      return res.status(400).json({ error: 'usuario_id requerido' });
+    }
+
+    console.log('📝 Creando reserva con datos:', {
+      cliente_id: finalClienteId,
+      paquete_id,
+      fecha_inicio,
+      fecha_fin,
+      cantidad_noches,
+      cantidad_personas,
+      tipo_habitacion
+    });
     
-    const reserva = await Reserva.create({
-      cliente_id,
-      numero_reserva: numero_reserva || `RES-${Date.now()}`,
-      fecha_entrada,
-      fecha_salida,
-      noches,
-      personas,
-      ciudad,
-      valor_total,
-      observaciones,
-      estado: 'pendiente'
+    // Usar raw query para evitar validaciones de FK
+    const result = await sequelize.query(`
+      INSERT INTO reservas (
+        cliente_id, numero_reserva, fecha_entrada, fecha_salida, 
+        noches, personas, estado, observaciones, tipo_habitacion, paquete_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *
+    `, {
+      bind: [
+        finalClienteId,
+        `RES-${Date.now()}`,
+        fecha_inicio,
+        fecha_fin,
+        cantidad_noches,
+        cantidad_personas,
+        estado || 'pendiente',
+        observaciones,
+        tipo_habitacion,
+        paquete_id
+      ],
+      type: sequelize.QueryTypes.SELECT
     });
 
-    res.status(201).json(reserva);
+    console.log('✅ Reserva creada:', result);
+    
+    res.status(201).json(result[0] || result);
   } catch (error) {
-    console.error('Error al crear reserva:', error);
-    res.status(500).json({ error: 'Error al crear reserva' });
+    console.error('❌ Error al crear reserva:', error);
+    res.status(500).json({ error: 'Error al crear reserva', detalle: error.message });
   }
 };
 

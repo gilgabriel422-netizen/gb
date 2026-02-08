@@ -111,6 +111,8 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    console.log('✅ Contraseña válida, generando token...');
+
     // Generar token JWT
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email, rol: usuario.rol },
@@ -118,7 +120,9 @@ exports.login = async (req, res) => {
       { expiresIn: '8h' }
     );
 
-    res.json({
+    console.log('✅ Token generado:', token.substring(0, 20) + '...');
+
+    const response = {
       token,
       usuario: {
         id: usuario.id,
@@ -126,7 +130,10 @@ exports.login = async (req, res) => {
         email: usuario.email,
         rol: usuario.rol
       }
-    });
+    };
+    
+    console.log('📤 Respuesta enviada:', JSON.stringify(response, null, 2));
+    res.json(response);
   } catch (error) {
     console.error('Error al hacer login:', error);
     res.status(500).json({ error: 'Error al hacer login', detalle: error.message });

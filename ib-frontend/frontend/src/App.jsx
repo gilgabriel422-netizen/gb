@@ -1,14 +1,14 @@
 import React, { lazy, Suspense } from 'react'
 const DashboardCobranzas = lazy(() => import('./pages/DashboardCobranzas.jsx'));
-const CobranzasPanelModified = lazy(() => import('./pages/CobranzasPanel_modified.jsx'));
+const CobranzasPanelModified = lazy(() => import('./pages/CobranzasPanel.jsx'));
 const DashboardContratos = lazy(() => import('./pages/DashboardContratos.jsx'));
 const DashboardAtencionCliente = lazy(() => import('./pages/DashboardAtencionCliente.jsx'));
 const DashboardPostventa = lazy(() => import('./pages/DashboardPostventa.jsx'));
-const PaquetesAdmin = lazy(() => import('./pages/PaquetesAdmin.jsx'));
-const SoportePanel = lazy(() => import('./pages/SoportePanel.jsx'));
-const ContratosFisicosPanel = lazy(() => import('./pages/ContratosFisicosPanel.jsx'));
-const AyudaCliente = lazy(() => import('./pages/AyudaCliente.jsx'));
-const SoportePage = lazy(() => import('./pages/SoportePAge.jsx'));
+// const PaquetesAdmin = lazy(() => import('./pages/PaquetesAdmin.jsx'));
+// const SoportePanel = lazy(() => import('./pages/SoportePanel.jsx'));
+// const ContratosFisicosPanel = lazy(() => import('./pages/ContratosFisicosPanel.jsx'));
+// const AyudaCliente = lazy(() => import('./pages/AyudaCliente.jsx'));
+// const SoportePage = lazy(() => import('./pages/SoportePAge.jsx'));
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Navbar from './components/Navbar'
@@ -85,25 +85,25 @@ function App() {
               </>
             } />
             {/* Rutas de innovation */}
-            <Route path="/paquetes-admin" element={<Suspense fallback={<div>Cargando...</div>}><Navbar /><div className="pt-8"><PaquetesAdmin /></div><Footer /></Suspense>} />
-            <Route path="/soporte-panel" element={<Suspense fallback={<div>Cargando...</div>}><Navbar /><div className="pt-8"><SoportePanel /></div><Footer /></Suspense>} />
-            <Route path="/soporte" element={
+            {/* <Route path="/paquetes-admin" element={<Suspense fallback={<div>Cargando...</div>}><Navbar /><div className="pt-8"><PaquetesAdmin /></div><Footer /></Suspense>} /> */}
+            {/* <Route path="/soporte-panel" element={<Suspense fallback={<div>Cargando...</div>}><Navbar /><div className="pt-8"><SoportePanel /></div><Footer /></Suspense>} /> */}
+            {/* <Route path="/soporte" element={
               <>
                 <Navbar />
                 <SoportePage />
                 <Footer />
                 <WhatsAppFloat />
               </>
-            } />
-            <Route path="/contratos-fisicos" element={<Suspense fallback={<div>Cargando...</div>}><Navbar /><div className="pt-8"><ContratosFisicosPanel /></div><Footer /></Suspense>} />
-            <Route path="/ayuda" element={
+            } /> */}
+            {/* <Route path="/contratos-fisicos" element={<Suspense fallback={<div>Cargando...</div>}><Navbar /><div className="pt-8"><ContratosFisicosPanel /></div><Footer /></Suspense>} /> */}
+            {/* <Route path="/ayuda" element={
               <>
                 <Navbar />
                 <AyudaCliente />
                 <Footer />
                 <WhatsAppFloat />
               </>
-            } />
+            } /> */}
             <Route path="/admin-login" element={<LoginPage />} />
             <Route path="/admin" element={<Suspense fallback={<div>Cargando...</div>}><Navbar /><div className="pt-8"><AdminPanel /></div><Footer /></Suspense>} />
             <Route path="/cliente" element={<Suspense fallback={<div>Cargando...</div>}><Navbar /><div className="pt-8"><ClientePanel /></div><Footer /></Suspense>} />

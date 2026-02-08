@@ -9,24 +9,24 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (user?.id) {
-      loadNotifications();
-      // Recargar notificaciones cada 30 segundos
-      const interval = setInterval(loadNotifications, 30000);
-      return () => clearInterval(interval);
-    }
+    // Desactivado temporalmente hasta que se configure la tabla notificaciones
+    // if (user?.id) {
+    //   loadNotifications();
+    //   const interval = setInterval(loadNotifications, 30000);
+    //   return () => clearInterval(interval);
+    // }
   }, [user?.id]);
 
   const loadNotifications = async () => {
     try {
       const api = await import('../services/api');
-      // Usar el usuarioId del usuario actual para filtrar notificaciones por rol
-      const response = await api.default.get(`/notificaciones?usuarioId=${user?.id}`);
+      // Obtener notificaciones no leídas del usuario actual
+      const response = await api.default.get(`/notificaciones/unread/${user?.id}`);
       const notifs = response.data || [];
       setNotifications(notifs);
       setUnreadCount(notifs.filter(n => !n.leida).length);
     } catch (error) {
-      console.error('Error loading notifications:', error);
+      // Silenciar error de notificaciones si no existen en BD
     }
   };
 

@@ -6,6 +6,7 @@ const clientesController = require('../controllers/clientesController');
 router.get('/', clientesController.getAllClientes);
 router.get('/admin', clientesController.getClientesCreadoPorAdmin);
 router.get('/search', clientesController.searchClientes);
+router.post('/crear-con-usuario', clientesController.crearClienteConUsuario);
 router.get('/:id', clientesController.getClienteById);
 router.post('/', clientesController.createCliente);
 router.put('/:id', clientesController.updateCliente);

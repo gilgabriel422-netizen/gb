@@ -2042,7 +2042,8 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       }
     } catch (error) {
       console.error('Error creando cliente:', error)
-      alert('Error al crear el cliente')
+      const message = error?.response?.data?.error || error?.response?.data?.details || error?.message || 'Error desconocido'
+      alert(`Error al crear el cliente: ${message}`)
     }
   }
 
@@ -2354,33 +2355,16 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
     }
   };
 
-  // Función para cargar resumen de pagos - DESHABILITADA TEMPORALMENTE
+  // Función para cargar resumen de pagos
   const loadPaymentsSummary = async () => {
     try {
       setPaymentsSummaryLoading(true)
       
-      // Establecer valores por defecto sin hacer llamadas a la API
-      setPaymentsSummary({
-        lastPeriod: {
-          totalPayments: 0,
-          collectedAmount: 0,
-          pendingAmount: 0,
-          collectionRate: 0
-        },
-        currentPeriod: {
-          totalPending: 0,
-          overdueAmount: 0,
-          upcomingAmount: 0,
-          agreementsPending: 0
-        },
-        totalOutstanding: {
-          totalDebt: 0,
-          overdueDebt: 0,
-          currentDebt: 0
-        }
-      })
+      // Llamar al servicio de reportes
+      const data = await reportService.getPaymentsSummary()
+      setPaymentsSummary(data)
       
-      console.log('✅ Resumen de pagos cargado con valores por defecto')
+      console.log('✅ Resumen de pagos cargado:', data)
     } catch (error) {
       console.error('Error cargando resumen de pagos:', error)
       // Establecer valores por defecto en caso de error
@@ -4642,15 +4626,17 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       case 'clientes':
         return (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-3">
               <h2 className="text-2xl font-bold text-gray-900">Gestión de Clientes</h2>
-              <button
-                onClick={handleNewClient}
-                className="bg-navy text-white px-4 py-2 rounded-lg hover:bg-navy/90 flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Nuevo Cliente
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleNewClient}
+                  className="bg-navy text-white px-4 py-2 rounded-lg hover:bg-navy/90 flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nuevo Cliente
+                </button>
+              </div>
             </div>
 
             {/* Barra de búsqueda */}
